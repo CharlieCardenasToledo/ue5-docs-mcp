@@ -1,90 +1,246 @@
-# Epic Docs Scraper & Offline Guide
+# UE5 Docs — Offline Documentation & LLM Context for Unreal Engine 5.7
 
-Este proyecto te permite descargar la documentación oficial de Unreal Engine desde Epic Games y compilarla en diferentes formatos (archivos individuales, una guía completa de texto, o un sitio web navegable).
+[![Deploy MkDocs](https://github.com/chcardenasto/DocUnrealEngine/actions/workflows/deploy.yml/badge.svg)](https://github.com/chcardenasto/DocUnrealEngine/actions/workflows/deploy.yml)
+[![Docs Version](https://img.shields.io/badge/Unreal%20Engine-5.7-blue)](https://dev.epicgames.com/documentation/en-us/unreal-engine)
+[![Pages Scraped](https://img.shields.io/badge/pages-3%2C444%2F3%2C470-green)](docs-md-py/en-us/unreal-engine)
+[![License](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-yellow)](https://python.org)
 
-Está diseñado explícitamente para que cualquier desarrollador pueda buscar, leer y navegar por la inmensa documentación de Unreal Engine de manera offline, rápida y cómoda.
-
----
-
-## 📖 Navegación Fácil y Profesional (Recomendado)
-
-La forma más potente y sencilla de leer la documentación generada es utilizando **MkDocs Material**. Esto te crea un sitio web local con un buscador instantáneo, menú lateral jerárquico y un diseño limpio.
-
-### Instrucciones rápidas:
-
-1. Asegúrate de tener Python instalado y las dependencias:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Genera el archivo de navegación (`mkdocs.yml`):
-   ```bash
-   python scripts/build_guide.py --mode mkdocs --docs-dir docs-md-py
-   ```
-3. Levanta el servidor local:
-   ```bash
-   mkdocs serve
-   ```
-4. Abre `http://127.0.0.1:8000` en tu navegador. Tendrás acceso inmediato a toda la documentación de Unreal Engine con búsqueda en tiempo real y árbol de navegación completo.
+> **3,444 pages of Unreal Engine 5.7 official documentation in clean Markdown — purpose-built for LLMs, RAG pipelines, offline reading, and AI-assisted development.**
 
 ---
 
-## 🗂️ Otros Formatos de Lectura
+## Why this project?
 
-Si prefieres no utilizar un servidor local, el script generador (`build_guide.py`) puede compilar otros formatos útiles:
+Official Unreal Engine documentation lives behind a JavaScript-heavy web interface. This project downloads the entire documentation corpus and converts it to clean, structured Markdown — the native format preferred by LLMs and embedding models.
 
-### Índice Jerárquico en Markdown
+| Format | Use case |
+|--------|----------|
+| 3,444 individual `.md` files | RAG pipelines, AI code assistants, semantic search |
+| `GUIDE_BOOK.md` (~30 MB) | Full-corpus context, local LLM input, `Ctrl+F` search |
+| `GUIDE_INDEX.md` | Hierarchical overview, LLM navigation hints |
+| MkDocs site | Interactive offline browser with full-text search |
+| **MCP Server** | Direct integration with Claude Code and any MCP-compatible LLM |
 
-Genera un `GUIDE_INDEX.md` en la raíz del proyecto. Este archivo contiene enlaces relativos a todos los archivos `.md` locales organizados en niveles (1., 1.1., 1.2.2., etc.).
+---
+
+## Quick Start
+
+### Option 1 — MCP Server (for Claude Code users)
+
+Install the MCP server so Claude can search and read UE5 docs in any session:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/chcardenasto/DocUnrealEngine.git
+cd DocUnrealEngine
+
+# 2. Install the MCP server package
+pip install -e ".[mcp]"
+
+# 3. Register it with Claude Code
+claude mcp add --transport stdio ue5-docs -- python -m mcp_server.server --docs-dir ./docs-md-py
+```
+
+Then in any Claude Code session:
+
+```
+What is the Gameplay Ability System in Unreal Engine?
+How do I implement replication for a custom Actor?
+```
+
+Claude will automatically query the MCP server for relevant documentation.
+
+### Option 2 — Interactive Web Browser (MkDocs)
+
+```bash
+pip install -r requirements.txt
+python scripts/build_guide.py --mode mkdocs --docs-dir docs-md-py
+mkdocs serve
+# Open http://127.0.0.1:8000
+```
+
+### Option 3 — RAG Pipeline Input
+
+The `docs-md-py/en-us/unreal-engine/` directory contains 3,444 clean Markdown files ready to embed:
+
+```python
+from langchain_community.document_loaders import DirectoryLoader
+from langchain_text_splitters import MarkdownHeaderTextSplitter
+
+loader = DirectoryLoader("./docs-md-py", glob="**/*.md", show_progress=True)
+docs = loader.load()
+
+splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[("#", "H1"), ("##", "H2")])
+chunks = [chunk for doc in docs for chunk in splitter.split_text(doc.page_content)]
+# Feed chunks into ChromaDB, Pinecone, FAISS, etc.
+```
+
+### Option 4 — Offline Index (No server)
 
 ```bash
 python scripts/build_guide.py --mode index --docs-dir docs-md-py
+# Opens GUIDE_INDEX.md in any Markdown viewer (VS Code, Obsidian, etc.)
 ```
 
-_Abre el archivo `GUIDE_INDEX.md` en tu editor de código o visor de Markdown preferido (por ejemplo, VS Code o Obsidian)._
+---
 
-### Libro Completo (Un solo archivo)
+## MCP Server Details
 
-Genera un único archivo gigante (`GUIDE_BOOK.md` - ~30 MB) con **toda** la documentación concatenada en orden. Ideal si quieres buscar texto libre `Ctrl+F` a través de toda la base de conocimiento sin cambiar de archivo, o si quieres usarlo como corpus de texto para IAs locales o procesos de RAG.
+The included MCP server exposes three tools to any MCP-compatible LLM:
+
+| Tool | Description |
+|------|-------------|
+| `search_docs` | Search docs by keyword, topic, or class name |
+| `get_doc` | Read the full content of a specific page |
+| `list_sections` | Browse top-level documentation categories |
+
+**Installation options:**
 
 ```bash
-python scripts/build_guide.py --mode book --docs-dir docs-md-py
+# stdio transport (local)
+claude mcp add --transport stdio ue5-docs -- python -m mcp_server.server
+
+# With custom docs path
+claude mcp add --transport stdio ue5-docs -- python -m mcp_server.server --docs-dir /path/to/docs-md-py
+
+# Via pip (once published)
+pip install ue5-docs-mcp
+claude mcp add --transport stdio ue5-docs -- python -m ue5_docs_mcp
 ```
 
 ---
 
-## ⚙️ Actualizar la Documentación (Scraping)
+## Dual MCP Setup — Docs + Unreal Editor (UE 5.8+)
 
-El proyecto incluye un scraper inteligente a prueba de interrupciones (`scrape_epic_docs.py`).
+> Unreal Engine 5.8 ships with a built-in MCP server inside the editor. Combine it with this docs server for a complete AI-assisted workflow.
 
-### Características:
+**With both servers active, Claude can:**
 
-- **Descarga multihilo**: Soporta N _workers_ concurrentes para máxima velocidad (`--workers N`).
-- **Caché Inteligente**: Por defecto, salta los archivos que ya se han descargado (`--skip-existing`). Puedes pausar y reanudar el script cuando quieras.
-- **Jerarquía preservada**: Descarga la tabla de contenidos oficial y preserva la estructura a través de un archivo maestro `toc-tree.json`.
+1. **Look up documentation** (this server) — *"What parameters does SpawnActorDeferred take?"*
+2. **Control the Unreal Editor** (Epic's server) — *"Spawn a PointLight at (100, 0, 500) and set intensity to 5000"*
 
-### Cómo ejecutar o actualizar:
+**Setup:**
 
-1. Ejecuta el scraper (por defecto usa 1 worker, recomendamos 4 o más para equipos potentes):
-   ```bash
-   python scripts/scrape_epic_docs.py --out-dir docs-md-py --workers 4
-   ```
-2. _(Opcional)_ Si hubo errores (ej: caídas de red), el script generará un log. Si quieres forzar regeneración:
-   ```bash
-   python scripts/scrape_epic_docs.py --out-dir docs-md-py --force
-   ```
+1. Enable the `Unreal MCP` plugin in UE 5.8+
+2. Run `ModelContextProtocol.GenerateClientConfig ClaudeCode` in the Output Log
+3. Add our docs server to the generated `.mcp.json` — see [`.mcp.json.template`](.mcp.json.template)
+
+Full setup guide in [`LLM_INTEGRATION.md`](LLM_INTEGRATION.md).
 
 ---
 
-## 🗃️ Estructura del Repositorio
+## LLM Integration Guide
 
-- `scripts/scrape_epic_docs.py`: Motor de recolección y web-scraping iterativo.
-- `scripts/build_guide.py`: Compilador de índices, libros unificados y configuración de interfaz web.
-- `docs-md-py/`: Carpeta (directorio objetivo) donde se almacenan todos los Markdown descargados y estructurados.
-- `GUIDE_INDEX.md` / `GUIDE_BOOK.md`: Productos generados por el builder.
-- `mkdocs.yml`: Archivo base generado automáticamente para el servidor de visualización.
+See [`LLM_INTEGRATION.md`](LLM_INTEGRATION.md) for detailed strategies:
+
+- **Cursor / GitHub Copilot / Cline** — Index the `docs-md-py` folder as a workspace
+- **Google NotebookLM / Custom GPTs / Claude Projects** — Upload the ZIP of `docs-md-py`
+- **RAG pipelines (LangChain, LlamaIndex)** — Embed individual `.md` files
+- **Large context models (Gemini 1.5 Pro, Claude)** — Feed `GUIDE_INDEX.md` first, then specific pages
 
 ---
 
-## ⚠️ Descargo de Responsabilidad / Copyright Notice
+## Versioning
 
-_La documentación generada, su contenido, texto, estructura, hipervínculos y todos los derivados producidos por el uso de los scripts en este repositorio son propiedad intelectual de Epic Games, Inc. y están sujetos a los términos de uso y derechos de autor establecidos por Epic Games para la Unreal Engine Documentation. Este proyecto open source (creado con fines educativos y de optimización de flujos de trabajo) proporciona las herramientas tecnológicas para su extracción, procesamiento y formateo técnico en local, pero no distribuye contenido comercial ni reclama la autoría de la documentación original._
+Each Unreal Engine release is frozen as a **git tag**. `main` always contains the latest version.
+
+| Tag | UE Version | Status |
+|-----|-----------|--------|
+| `v5.7` | Unreal Engine 5.7 | Current (3,444 pages) |
+| `v5.8` | Unreal Engine 5.8 | Planned |
+
+```bash
+# Use UE 5.7 docs (frozen)
+git checkout v5.7
+
+# Use latest docs
+git checkout main
+```
+
+---
+
+## Updating or Scraping a New Version
+
+```bash
+# Scrape UE 5.8 (when released)
+python scripts/scrape_epic_docs.py --out-dir docs-md-py --workers 4 --application-version 5.8
+
+# Resume an interrupted download
+python scripts/scrape_epic_docs.py --out-dir docs-md-py --workers 4 --skip-existing
+
+# Force re-download all pages
+python scripts/scrape_epic_docs.py --out-dir docs-md-py --force
+```
+
+**Scraper features:**
+- Multi-threaded (configurable workers)
+- Resumable — skips already-downloaded pages
+- Exponential backoff on failures
+- Generates `INDEX.md`, `FAILURES.md`, and `pending-routes.json` on completion
+
+---
+
+## Repository Structure
+
+```
+DocUnrealEngine/
+├── docs-md-py/
+│   └── en-us/unreal-engine/     ← 3,444 Markdown files (the corpus)
+│       ├── INDEX.md              ← Hierarchical page index
+│       ├── FAILURES.md           ← 26 pages that returned 404
+│       └── mkdocs.yml            ← Auto-generated MkDocs config
+├── mcp_server/
+│   ├── __init__.py
+│   └── server.py                 ← MCP server (search + retrieval)
+├── scripts/
+│   ├── scrape_epic_docs.py       ← Web scraper (HTML → Markdown)
+│   └── build_guide.py            ← Compiler (index / book / mkdocs)
+├── .github/workflows/deploy.yml  ← CI/CD → GitHub Pages
+├── GUIDE_BOOK.md                 ← Full corpus as single file (~30 MB)
+├── GUIDE_INDEX.md                ← Hierarchical index
+├── LLM_INTEGRATION.md            ← Detailed LLM usage guide
+├── llms.txt                      ← LLM discovery metadata
+├── pyproject.toml                ← Package config for MCP server
+├── requirements.txt              ← Python dependencies
+└── README.md
+```
+
+---
+
+## Documentation Coverage
+
+| Metric | Value |
+|--------|-------|
+| UE version | 5.7 |
+| Pages downloaded | 3,444 |
+| Failed pages (404) | 26 (deprecated tools/removed sections) |
+| Success rate | 99.25% |
+| Corpus size | ~40 MB (individual files) |
+| GUIDE_BOOK.md | ~30 MB |
+
+The 26 failed pages are all confirmed deprecated or removed sections from Epic's servers (e.g., `vertex-sculpt-tool`, `dynamic-sculpt-tool`, `variant-manager-template-overview`).
+
+---
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines. In short:
+
+- Open an issue before implementing a large change
+- Keep PRs focused and small
+- Run `pip install -r requirements.txt` before working on scripts
+
+---
+
+## Legal Notice
+
+The documentation content in `docs-md-py/` is the intellectual property of **Epic Games, Inc.** and is subject to Epic Games' terms of use and copyright. This repository provides open-source tooling (scraper, builder, MCP server) for offline access and personal/educational use only. It does not distribute commercial content or claim authorship of the original documentation.
+
+---
+
+## License
+
+The **scripts and tooling** in this repository (everything except the content in `docs-md-py/`) are licensed under the [MIT License](LICENSE).
+
+The **documentation content** in `docs-md-py/` remains the property of Epic Games, Inc.

@@ -1,70 +1,172 @@
-# 🤖 Integración con Inteligencia Artificial (LLMs)
+# LLM Integration Guide — UE5 Docs
 
-El gran valor de tener la documentación entera de Unreal Engine en formato **Markdown estructurado** es que es el formato nativo preferido por los Modelos de Lenguaje Grandes (LLMs).
-
-A diferencia del HTML lleno de ruido web o PDFs pesados, el Markdown generado en este proyecto es 100% texto limpio. Aquí tienes las mejores estrategias para usar estos datos con **cualquier LLM** (ChatGPT, Claude, Gemini, Llama, etc.).
+This guide explains how to use the 3,444-page Unreal Engine 5.7 documentation corpus with LLMs, AI code assistants, and RAG pipelines.
 
 ---
 
-## 1. Asistentes de Código (Cursor, GitHub Copilot, Cline)
+## Option 1 — MCP Server (Claude Code — Best Option)
 
-La forma más directa de usar esta documentación para programar.
+The bundled MCP server gives Claude direct search access to the entire documentation corpus without flooding the context window.
 
-**Cómo hacerlo:**
+### Setup
 
-1. Abre tu proyecto de Unreal Engine en un editor con IA (como Cursor).
-2. Agrega la carpeta `docs-md-py` al _Workspace_ secundario del editor, o utiliza la función de indexación local (ej. `@Codebase` o `@Folders` en Cursor).
-3. La IA indizará automáticamente los miles de archivos `.md` y los usará como contexto altamente preciso cuando le preguntes _"¿Cómo implemento X en C++ para Unreal Engine 5.7?"_.
+```bash
+git clone https://github.com/chcardenasto/DocUnrealEngine.git
+cd DocUnrealEngine
+pip install -e ".[mcp]"
+claude mcp add --transport stdio ue5-docs -- python -m mcp_server.server --docs-dir ./docs-md-py
+```
 
-## 2. Bases de Conocimiento sin Código (NotebookLM, Custom GPTs, Claude Projects)
+### What Claude can do after setup
 
-Ideal si no quieres programar tu propia IA pero quieres un "Experto en Unreal Engine" personal.
+```
+# Claude will automatically call search_docs and get_doc as needed:
+"How does the Gameplay Ability System handle attribute changes?"
+"Show me the C++ API for UCharacterMovementComponent"
+"What are the replication modes for Actor Network Dormancy?"
+```
 
-**Cómo hacerlo:**
+Claude searches the index, finds the relevant pages, reads them, and answers — without you manually copying documentation.
 
-- **Google NotebookLM / Custom GPTs (OpenAI) / Projects (Anthropic)**: Estas plataformas permiten subir archivos para crear una base de conocimiento aislada (RAG automático).
-- **El reto del tamaño**: El archivo `GUIDE_BOOK.md` pesa ~30MB (aprox. 7-8 millones de tokens). La mayoría de los LLMs comerciales tienen un límite de contexto de 128K a 200K tokens (Gemini 1.5 Pro llega a 2M).
-- **La solución**: Comprime la carpeta `docs-md-py` entera en un archivo `.zip` y súbela a tu Custom GPT o Claude Project. Las plataformas modernas extraerán el ZIP, leerán los Markdowns y buscarán en ellos cuando les hagas una pregunta.
+---
 
-## 3. Construir tu propio RAG (Retrieval-Augmented Generation)
+## Option 2 — Unreal MCP + Docs MCP (Dual Server Setup)
 
-Si estás desarrollando tu propia aplicación o script de IA (usando LangChain, LlamaIndex, o llamadas directas a APIs), la estructura individual de la carpeta `docs-md-py` es perfecta.
+> **Available from Unreal Engine 5.8**
 
-La estrategia es:
+Epic Games added a built-in MCP server to the Unreal Editor (plugin: **Unreal MCP**). When combined with this project's documentation server, Claude can:
 
-1. **Cargar Documentos**: Iterar sobre todos los archivos `.md` en la carpeta `docs-md-py`.
-2. **Fragmentar (Chunking)**: Dividir cada archivo por sus encabezados Markdown (ej. `##`).
-3. **Incrustar (Embeddings)**: Convertir los textos a vectores usando modelos como `text-embedding-3-small` de OpenAI.
-4. **Base Vectorial**: Guardar los vectores en una base de datos local como [ChromaDB](https://docs.trychroma.com/) o FAISS.
+1. **Look up documentation** (our server) — *"What parameters does SpawnActor take?"*
+2. **Execute actions in the editor** (Unreal's server) — *"Spawn a PointLight at position (100, 200, 0)"*
 
-### Ejemplo de Snippet en Python (LangChain)
+### Setup
+
+**Step 1 — Enable the Unreal MCP plugin in your project**
+
+In the Unreal Editor: *Edit → Plugins → search "MCP" → Enable "Unreal MCP" → Restart*
+
+**Step 2 — Generate the client config**
+
+In the Output Log or console:
+```
+ModelContextProtocol.GenerateClientConfig ClaudeCode
+```
+
+This creates an `.mcp.json` in your project root.
+
+**Step 3 — Add our docs server to `.mcp.json`**
+
+```json
+{
+  "mcpServers": {
+    "unreal-editor": {
+      "url": "http://127.0.0.1:8000/mcp"
+    },
+    "ue5-docs": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "mcp_server.server", "--docs-dir", "/path/to/DocUnrealEngine/docs-md-py"]
+    }
+  }
+}
+```
+
+**Step 4 — Open Claude Code in your Unreal project directory**
+
+Claude now has both:
+- Documentation lookup (our server, 3,444 pages)
+- Editor control (Unreal's server — spawn actors, set materials, run tests, etc.)
+
+### Example dual-server workflow
+
+```
+You: "Add a Niagara particle system to the scene with fire-like settings"
+
+Claude:
+  1. Calls search_docs("Niagara particle system setup") → finds the relevant docs
+  2. Reads get_doc("niagara-overview") → understands the API
+  3. Calls Unreal editor MCP → spawns and configures the Niagara component
+```
+
+### Unreal MCP server tools (built-in UE5.8+)
+
+| Tool | Description |
+|------|-------------|
+| `list_toolsets` | List available tool categories |
+| `describe_toolset` | Get parameter schemas for a toolset |
+| `call_tool` | Execute any editor tool |
+| Custom via Python | `@toolset_registry.tool_call` decorator |
+| Custom via C++ | `meta = (AICallable)` UFUNCTION metadata |
+
+**Connection:** `http://127.0.0.1:8000/mcp` (loopback only, no auth)
+
+---
+
+## Option 3 — AI Code Assistants (Cursor, GitHub Copilot, Cline)
+
+Index the `docs-md-py` folder as a workspace source:
+
+1. Open your Unreal project in **Cursor**
+2. Add `DocUnrealEngine/docs-md-py` as a secondary workspace folder
+3. Use `@Codebase` or `@Folders` when asking questions
+4. The AI indexes all `.md` files and uses them as precise context
+
+Works with any editor that supports workspace-level AI indexing.
+
+---
+
+## Option 4 — Custom GPTs / Claude Projects / NotebookLM
+
+For a no-code "Unreal Engine Expert":
+
+1. Zip the `docs-md-py` folder: `zip -r ue5-docs.zip docs-md-py/`
+2. Upload to your platform:
+   - **Claude Projects** — upload the ZIP, create a project
+   - **Custom GPTs (OpenAI)** — upload under Knowledge
+   - **Google NotebookLM** — upload as a source
+3. The platform extracts Markdown files and builds an automatic RAG index
+
+**Token budget note:**
+- `GUIDE_BOOK.md` ≈ 7–8 million tokens (too large for most models directly)
+- Individual files average ~2,000 tokens (perfect for chunking)
+- `GUIDE_INDEX.md` is lightweight — feed it first, then request specific pages
+
+---
+
+## Option 5 — Custom RAG Pipeline (LangChain / LlamaIndex)
 
 ```python
 from langchain_community.document_loaders import DirectoryLoader
 from langchain_text_splitters import MarkdownHeaderTextSplitter
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
 
-# 1. Cargar todos los archivos markdown
-loader = DirectoryLoader('./docs-md-py', glob="**/*.md", show_progress=True)
+# Load all 3,444 Markdown files
+loader = DirectoryLoader("./docs-md-py", glob="**/*.md", show_progress=True)
 docs = loader.load()
 
-# 2. Dividir respetando la estructura Markdown
-headers_to_split_on = [("#", "Header 1"), ("##", "Header 2")]
-markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on)
+# Split by Markdown headers (preserves semantic boundaries)
+splitter = MarkdownHeaderTextSplitter(
+    headers_to_split_on=[("#", "H1"), ("##", "H2"), ("###", "H3")]
+)
+chunks = [chunk for doc in docs for chunk in splitter.split_text(doc.page_content)]
 
-chunks = []
-for doc in docs:
-    splits = markdown_splitter.split_text(doc.page_content)
-    # Aquí puedes añadir los metadatos del archivo original a cada chunk
-    chunks.extend(splits)
+# Embed and store
+vectorstore = Chroma.from_documents(
+    documents=chunks,
+    embedding=OpenAIEmbeddings(model="text-embedding-3-small"),
+    persist_directory="./ue5-vectordb",
+)
 
-print(f"Total de fragmentos (chunks) listos para la Vector DB: {len(chunks)}")
-
-# 3. (Siguiente paso): Enviar 'chunks' a ChromaDB, Pinecone, o FAISS.
+# Query
+results = vectorstore.similarity_search("How does UGameplayAbility handle cooldowns?", k=5)
 ```
 
 ---
 
-## ⚠️ Consejos Clave para Prompters
+## Tips for Prompting
 
-- **Usa el índice**: Si estás usando un modelo con ventana de contexto enorme (ej. Gemini 1.5 Pro), puedes pasarle primero el `GUIDE_INDEX.md` (que es muy ligero) y pedirle: _"Revisa este índice y dime qué archivos .md exactos necesitas que te proporcione para responder mi pregunta"_.
-- **Mantén la metadata**: El scraper dejó los links fuente (`> Source: ...`) al inicio de cada archivo. Úsalo en tus prompts: _"Cuando me respondas, por favor cita la URL de Epic Games de donde sacaste la información usando la metadata del archivo"_.
+- **Use the index first**: Feed `GUIDE_INDEX.md` to a large-context model and ask it to identify which files are relevant before you load them
+- **Cite sources**: Each file starts with `> Source: https://dev.epicgames.com/...` — ask the LLM to cite this URL in its answers
+- **Class names beat descriptions**: Search `"UAbilitySystemComponent"` rather than `"ability component class"`
+- **Version pinning**: All files include `> Application Version: 5.7` — useful when asking models to differentiate between UE versions

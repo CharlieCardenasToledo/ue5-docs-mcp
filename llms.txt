@@ -1,0 +1,69 @@
+# Unreal Engine 5.7 Documentation Corpus
+
+This repository contains the complete Unreal Engine 5.7 official documentation converted to clean Markdown.
+
+## Purpose
+
+Provides 3,444 Markdown files scraped from Epic Games' official documentation site for use as LLM context, RAG pipelines, offline reading, and AI-assisted Unreal Engine development.
+
+## Access via MCP Server (Recommended for Claude)
+
+Install the bundled MCP server to give Claude direct search access:
+
+```bash
+pip install -e ".[mcp]"
+claude mcp add --transport stdio ue5-docs -- python -m mcp_server.server --docs-dir ./docs-md-py
+```
+
+Available tools once installed:
+- `search_docs(query)` — search by topic, class name, or keyword
+- `get_doc(slug)` — retrieve full page content
+- `list_sections()` — browse top-level categories
+
+## File Organization
+
+All documentation files are in `docs-md-py/en-us/unreal-engine/` as flat Markdown files named by slug.
+
+Examples:
+- `gameplay-ability-system-overview.md`
+- `actor-communication-in-unreal-engine.md`
+- `introduction-to-blueprints.md`
+- `niagara-overview.md`
+
+## Key Topics Available
+
+- Gameplay Framework (Actors, Components, GameMode, GameState, PlayerController)
+- Gameplay Ability System (GAS, Attributes, Effects, Abilities)
+- Blueprints (Visual Scripting, Variables, Events, Functions)
+- C++ Programming (Classes, Reflection, UFUNCTION, UPROPERTY)
+- Rendering (Materials, Shaders, Lumen, Nanite, Post Processing)
+- Networking (Replication, RPCs, Actor Relevancy, Network Roles)
+- Animation (Skeleton, AnimBP, AnimMontage, IK, Physics Assets)
+- Physics (Collision, Constraints, Chaos Physics, Vehicles)
+- AI (Behavior Trees, Blackboard, Navigation Mesh, Environment Query System)
+- Input (Enhanced Input, Input Actions, Input Mapping Context)
+- Audio (MetaSound, Sound Cues, Attenuation, Submixes)
+- UI / UMG (Widgets, Slate, HUD, Canvas)
+- Tools (Niagara, PCG, Control Rig, World Partition, Level Instances)
+- Platform (iOS, Android, Console, XR/VR/AR)
+- Packaging and Distribution
+
+## Navigation
+
+- `docs-md-py/INDEX.md` — hierarchical page listing with links
+- `GUIDE_INDEX.md` — numbered hierarchical index (1., 1.1., 1.1.1.)
+- `GUIDE_BOOK.md` — entire corpus as single file (~30 MB, ~7M tokens)
+
+## Metadata Format
+
+Each Markdown file contains:
+```markdown
+# Page Title
+> Source: https://dev.epicgames.com/documentation/en-us/unreal-engine/...
+> Application Version: 5.7
+[content]
+```
+
+## Source
+
+Scraped from https://dev.epicgames.com/documentation/en-us/unreal-engine using the included scraper (`scripts/scrape_epic_docs.py`). Content copyright Epic Games, Inc.

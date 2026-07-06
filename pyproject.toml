@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ue5-docs-mcp"
+version = "1.0.0"
+description = "MCP server providing Unreal Engine 5.7 documentation access for LLMs"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+keywords = ["unreal-engine", "mcp", "llm", "documentation", "rag"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0.0"]
+dev = ["mcp>=1.0.0", "pytest>=7.0"]
+
+[project.scripts]
+ue5-docs-mcp = "mcp_server.server:main"
+
+[project.urls]
+Homepage = "https://github.com/chcardenasto/DocUnrealEngine"
+Repository = "https://github.com/chcardenasto/DocUnrealEngine"
+Issues = "https://github.com/chcardenasto/DocUnrealEngine/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mcp_server"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["docs-md-py/", "GUIDE_BOOK.md", ".rtfm/"]

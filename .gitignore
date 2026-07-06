@@ -1,16 +1,39 @@
-# Entornos virtuales y python
+# Python
 .venv/
 venv/
 env/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
 
 # Node
 node_modules/
 
-# Herramientas locales dev
+# Local dev tools
 .tools/
 
-# Archivos temporales o de sistema
+# MkDocs generated site
+site/
+
+# RTFM index (local only, auto-regenerated)
+.rtfm/
+
+# Large generated files (regenerate with build_guide.py)
+GUIDE_BOOK.md
+GUIDE_INDEX.md
+mkdocs.yml
+
+# OS files
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "ue5-docs": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_server.server",
+        "--docs-dir",
+        "/REPLACE/WITH/PATH/TO/DocUnrealEngine/docs-md-py"
+      ],
+      "description": "Unreal Engine 5.7 documentation search and retrieval"
+    },
+    "unreal-editor": {
+      "url": "http://127.0.0.1:8000/mcp",
+      "description": "Unreal Editor MCP server (requires UE 5.8+ with Unreal MCP plugin enabled). See: https://dev.epicgames.com/documentation/unreal-engine/unreal-mcp-in-unreal-editor"
+    }
+  }
+}
