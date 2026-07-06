@@ -53,6 +53,34 @@ def load_toc_from_file(path: Path) -> Dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_entries_from_index(index_path: Path) -> Tuple[List[Dict[str, Any]], str]:
+    """Parse docs-md-py/INDEX.md as a flat entry list when the API is unavailable.
+
+    Returns (entries, app_version).
+    """
+    link_re = re.compile(r"\[([^\]]+)\]\(([^)]+\.md)\)")
+    version_re = re.compile(r"Application version[:`\s]+([0-9.]+)", re.IGNORECASE)
+
+    entries: List[Dict[str, Any]] = []
+    app_version = ""
+
+    for line in index_path.read_text(encoding="utf-8").splitlines():
+        m = version_re.search(line)
+        if m:
+            app_version = m.group(1)
+        for title, rel_path in link_re.findall(line):
+            page_path = rel_path.replace("\\", "/").removesuffix(".md")
+            slug = Path(rel_path).stem
+            entries.append({
+                "title": title,
+                "slug": slug,
+                "page_path": page_path,
+                "sub_entries": [],
+            })
+
+    return entries, app_version
+
+
 def safe_file_segment(seg: str) -> str:
     seg = seg.strip().lower()
     seg = re.sub(r"[^a-z0-9._-]+", "-", seg)
@@ -355,12 +383,25 @@ def main() -> None:
         start_path = args.start_path or toc_data.get("start_path") or args.start_path
         entries = toc_data.get("entries") or []
     else:
-        print("toc-tree.json no encontrado. Fetcheando ToC desde la API ...")
-        scraper = _make_scraper()
-        toc = fetch_toc(scraper, args.start_path, args.application_version)
-        app_version = args.application_version or (toc.get("all_versions") or [""])[0]
-        start_path = args.start_path
-        entries = toc.get("entries") or []
+        index_fallback = docs_dir / "INDEX.md"
+        try:
+            print("toc-tree.json no encontrado. Fetcheando ToC desde la API ...")
+            scraper = _make_scraper()
+            toc = fetch_toc(scraper, args.start_path, args.application_version)
+            app_version = args.application_version or (toc.get("all_versions") or [""])[0]
+            start_path = args.start_path
+            entries = toc.get("entries") or []
+        except Exception as api_err:
+            if not index_fallback.exists():
+                raise RuntimeError(
+                    f"API no disponible ({api_err}) y no se encontró {index_fallback}.\n"
+                    "Proporciona --toc-file o asegúrate de que INDEX.md exista."
+                ) from api_err
+            print(f"API no disponible ({api_err}).")
+            print(f"Usando {index_fallback} como fallback ...")
+            entries, detected_version = load_entries_from_index(index_fallback)
+            app_version = args.application_version or detected_version
+            start_path = args.start_path
 
     start_parts = [p for p in start_path.strip("/").split("/") if p]
     if len(start_parts) < 2:

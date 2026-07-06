@@ -22,6 +22,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Generate MkDocs configuration
-        run: python scripts/build_guide.py --mode mkdocs
+        run: python scripts/build_guide.py --mode mkdocs --docs-dir docs-md-py
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force
