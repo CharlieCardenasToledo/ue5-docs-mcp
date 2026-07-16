@@ -1,6 +1,6 @@
 # UE5 Docs — Offline Documentation & LLM Context for Unreal Engine 5.7
 
-[![Deploy MkDocs](https://github.com/chcardenasto/DocUnrealEngine/actions/workflows/deploy.yml/badge.svg)](https://github.com/chcardenasto/DocUnrealEngine/actions/workflows/deploy.yml)
+[![Deploy MkDocs](https://github.com/CharlieCardenasToledo/ue5-docs-mcp/actions/workflows/deploy.yml/badge.svg)](https://github.com/CharlieCardenasToledo/ue5-docs-mcp/actions/workflows/deploy.yml)
 [![Docs Version](https://img.shields.io/badge/Unreal%20Engine-5.7-blue)](https://dev.epicgames.com/documentation/en-us/unreal-engine)
 [![Pages Scraped](https://img.shields.io/badge/pages-3%2C444%2F3%2C470-green)](docs-md-py/en-us/unreal-engine)
 [![License](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
@@ -32,8 +32,8 @@ Install the MCP server so Claude can search and read UE5 docs in any session:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/chcardenasto/DocUnrealEngine.git
-cd DocUnrealEngine
+git clone https://github.com/CharlieCardenasToledo/ue5-docs-mcp.git
+cd ue5-docs-mcp
 
 # 2. Install the MCP server package
 pip install -e ".[mcp]"
@@ -184,7 +184,7 @@ python scripts/scrape_epic_docs.py --out-dir docs-md-py --force
 ## Repository Structure
 
 ```
-DocUnrealEngine/
+ue5-docs-mcp/
 ├── docs-md-py/
 │   └── en-us/unreal-engine/     ← 3,444 Markdown files (the corpus)
 │       ├── INDEX.md              ← Hierarchical page index
