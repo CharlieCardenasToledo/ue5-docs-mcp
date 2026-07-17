@@ -25,8 +25,8 @@ Good contributions include:
 ## Setup
 
 ```bash
-git clone https://github.com/chcardenasto/DocUnrealEngine.git
-cd DocUnrealEngine
+git clone https://github.com/CharlieCardenasToledo/ue5-docs-mcp.git
+cd ue5-docs-mcp
 pip install -r requirements.txt
 pip install -e ".[mcp]"  # if working on the MCP server
 ```
