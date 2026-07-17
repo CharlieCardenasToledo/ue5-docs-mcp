@@ -1,0 +1,131 @@
+{
+  "generated_at": "2026-03-08T18:54:51Z",
+  "mode": "retry",
+  "start_path": "en-us/unreal-engine/understanding-the-basics-of-unreal-engine",
+  "application_version": "5.7",
+  "total_entries": 26,
+  "exported": 2,
+  "pending_count": 24,
+  "pending": [
+    {
+      "path": "en-us/unreal-engine/vertex-sculpt-tool-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/dynamic-sculpt-tool-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/lattice-tool-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/displace-tool-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/variant-manager-template-overview",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/scripting-the-variant-manager-setup",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/landscape-manage-mode-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/level-designer-quick-start-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/font-material-expressions-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/particle-material-expressions-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/texture-material-expressions-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/adding-components-to-an-actor-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/setting-up-character-movement",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/finding-actors-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/respawning-a-player-character",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/possessing-pawns-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/interface-quick-start-guide-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/spawning-and-destroying-unreal-engine-actors",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/using-spring-arm-components-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/switching-between-multiple-fixed-camera-perspectives-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/working-with-camera-components-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/game-features-and-modular-gameplay-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/using-timers-in-unreal-engine",
+      "error": "HTTP 404",
+      "attempts": 1
+    },
+    {
+      "path": "en-us/unreal-engine/subtitles-and-closed-captions-plugin",
+      "error": "HTTP 404",
+      "attempts": 1
+    }
+  ]
+}
